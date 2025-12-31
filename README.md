@@ -1,3 +1,11 @@
+## About the application
+
+This currency converter calculates exchange rates using official data from the European Central Bank (ECB), with fallback rates in place to ensure results are always available.
+
+A built-in history of conversions and favorite currency pairs makes it easy to return to previously used setups. The application also includes a rate chart that visualizes exchange-rate trends over 24 hours, 7 days, or 30 days using a responsive SVG path with the latest value highlighted.
+
+The user’s local currency is automatically detected from navigator.language, allowing the interface to adapt instantly with a sensible default selection.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
