@@ -113,6 +113,9 @@ const CurrencyBox = () => {
     const ecbBaseUrl = 'https://data-api.ecb.europa.eu/service/data/EXR';
     const seriesByCurrency = currency => `${ecbBaseUrl}/D.${currency}.EUR.SP00.A`;
     const requestParams = 'lastNObservations=1&detail=dataonly';
+    const requestHeaders = {
+      Accept: 'application/vnd.sdmx.data+json;version=1.0.0-wd',
+    };
 
     const readCache = () => {
       if (typeof window === 'undefined') return null;
@@ -168,7 +171,7 @@ const CurrencyBox = () => {
         }));
 
         const responses = await Promise.all(
-          requests.map(request => fetch(request.url, { signal: controller.signal }))
+          requests.map(request => fetch(request.url, { signal: controller.signal, headers: requestHeaders }))
         );
 
         if (responses.some(response => !response.ok)) {

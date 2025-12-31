@@ -12,7 +12,6 @@ const RateChart = ({ from, to }) => {
   const [rangeId, setRangeId] = useState('7d');
   const [series, setSeries] = useState([]);
   const [status, setStatus] = useState('idle');
-  const [error, setError] = useState(null);
 
   const currentRange = ranges.find(range => range.id === rangeId) || ranges[1];
 
@@ -21,6 +20,9 @@ const RateChart = ({ from, to }) => {
     const controller = new AbortController();
     const ecbBaseUrl = 'https://data-api.ecb.europa.eu/service/data/EXR';
     const seriesByCurrency = currency => `${ecbBaseUrl}/D.${currency}.EUR.SP00.A`;
+    const requestHeaders = {
+      Accept: 'application/vnd.sdmx.data+json;version=1.0.0-wd',
+    };
 
     const formatDate = date => date.toISOString().slice(0, 10);
 
@@ -47,7 +49,6 @@ const RateChart = ({ from, to }) => {
     const fetchSeries = async () => {
       try {
         setStatus('loading');
-        setError(null);
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(endDate.getDate() - currentRange.days);
@@ -65,7 +66,7 @@ const RateChart = ({ from, to }) => {
         }
 
         const responses = await Promise.all(
-          requests.map(request => fetch(request.url, { signal: controller.signal }))
+          requests.map(request => fetch(request.url, { signal: controller.signal, headers: requestHeaders }))
         );
 
         if (responses.some(response => !response.ok)) {
@@ -96,7 +97,7 @@ const RateChart = ({ from, to }) => {
           const toRate = to === 'EUR' ? 1 : toMap[date];
           if (typeof fromRate !== 'number' || typeof toRate !== 'number') return null;
           const value = (1 / fromRate) * toRate;
-          return { date, value };
+          return { date, close: value };
         }).filter(Boolean);
 
         setSeries(dataPoints);
@@ -104,7 +105,6 @@ const RateChart = ({ from, to }) => {
       } catch (error) {
         if (error.name === 'AbortError') return;
         if (!isActive) return;
-        setError('Chart unavailable');
         setStatus('error');
       }
     };
@@ -121,31 +121,53 @@ const RateChart = ({ from, to }) => {
     };
   }, [from, to, currentRange.days]);
 
-  const chartPath = useMemo(() => {
-    if (series.length < 2) return '';
-    const values = series.map(point => point.value);
+  const chartLayout = useMemo(() => {
+    if (series.length < 2) return null;
+    const values = series.map(point => point.close);
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const width = 480;
-    const height = 160;
-    const padding = 16;
+    const width = 520;
+    const height = 180;
+    const padding = 20;
     const range = max - min || 1;
+    const step = (width - padding * 2) / (series.length - 1);
 
-    const toX = (index, count) => {
-      return padding + (index / (count - 1)) * (width - padding * 2);
-    };
-    const toY = value => {
-      return height - padding - ((value - min) / range) * (height - padding * 2);
-    };
+    const toX = index => padding + index * step;
+    const toY = value => height - padding - ((value - min) / range) * (height - padding * 2);
 
-    return series.map((point, index) => {
-      const x = toX(index, series.length);
-      const y = toY(point.value);
-      return `${index === 0 ? 'M' : 'L'}${x},${y}`;
-    }).join(' ');
+    return {
+      width,
+      height,
+      padding,
+      step,
+      toX,
+      toY,
+    };
   }, [series]);
 
-  const latestValue = series.length > 0 ? series[series.length - 1].value : null;
+  const latestValue = series.length > 0 ? series[series.length - 1].close : null;
+
+  const linePath = useMemo(() => {
+    if (!chartLayout || series.length < 2) return '';
+    return series.map((point, index) => {
+      const x = chartLayout.toX(index);
+      const y = chartLayout.toY(point.close);
+      return `${index === 0 ? 'M' : 'L'}${x},${y}`;
+    }).join(' ');
+  }, [chartLayout, series]);
+
+  const areaPath = useMemo(() => {
+    if (!chartLayout || series.length < 2) return '';
+    const firstX = chartLayout.toX(0);
+    const lastX = chartLayout.toX(series.length - 1);
+    const baseY = chartLayout.height - chartLayout.padding;
+    const line = series.map((point, index) => {
+      const x = chartLayout.toX(index);
+      const y = chartLayout.toY(point.close);
+      return `${index === 0 ? 'M' : 'L'}${x},${y}`;
+    }).join(' ');
+    return `${line} L${lastX},${baseY} L${firstX},${baseY} Z`;
+  }, [chartLayout, series]);
 
   return (
     <section className={styles.chart}>
@@ -169,10 +191,11 @@ const RateChart = ({ from, to }) => {
       {status === 'ready' && series.length < 2 ? (
         <p className={styles.info}>Not enough data for chart.</p>
       ) : null}
-      {chartPath ? (
+      {chartLayout ? (
         <div className={styles.canvas}>
-          <svg viewBox="0 0 480 160" className={styles.svg}>
-            <path d={chartPath} className={styles.line} />
+          <svg viewBox={`0 0 ${chartLayout.width} ${chartLayout.height}`} className={styles.svg}>
+            {areaPath ? <path d={areaPath} className={styles.area} /> : null}
+            {linePath ? <path d={linePath} className={styles.line} /> : null}
           </svg>
           {latestValue ? (
             <p className={styles.latest}>Latest: {latestValue.toFixed(4)}</p>
