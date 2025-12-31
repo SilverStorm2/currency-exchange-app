@@ -1,0 +1,96 @@
+@import '../../styles/settings.scss';
+
+.panel {
+  display: grid;
+  gap: $base-size * 2;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: $base-size * 2 $base-size * 3;
+}
+
+.block {
+  background: $color-light;
+  border-radius: $radius;
+  box-shadow: $box-shadow;
+  padding: $base-size * 2;
+}
+
+.title {
+  color: $color-dark;
+  font-size: $base-size * 1.8;
+  margin: 0 0 $base-size;
+}
+
+.headerRow {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $base-size;
+}
+
+.clear {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: $radius;
+  color: $color-dark;
+  cursor: pointer;
+  font-size: $base-size * 1.1;
+  padding: $base-size * 0.3 $base-size * 1.2;
+}
+
+.favorites {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $base-size;
+  margin-bottom: $base-size;
+}
+
+.favoriteButton {
+  background: $color-dark;
+  border: none;
+  border-radius: $radius;
+  color: $color-light;
+  cursor: pointer;
+  font-size: $base-size * 1.2;
+  padding: $base-size $base-size * 1.5;
+}
+
+.toggle {
+  background: $color-success;
+  border: none;
+  border-radius: $radius;
+  color: $color-light;
+  cursor: pointer;
+  font-size: $base-size * 1.2;
+  padding: $base-size $base-size * 1.5;
+}
+
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.historyItem {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: $base-size 0;
+}
+
+.historyItem:last-child {
+  border-bottom: none;
+}
+
+.historyRow {
+  display: block;
+  font-weight: 600;
+  color: $color-dark;
+}
+
+.historyMeta {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: $base-size * 1.2;
+}
+
+.empty {
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 $base-size;
+}

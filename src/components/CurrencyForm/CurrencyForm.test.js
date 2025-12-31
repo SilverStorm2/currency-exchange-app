@@ -17,6 +17,7 @@ describe('Component CurrencyForm', () => {
 
     for (const testObj of testCases) {
       const action = jest.fn();
+      const user = userEvent.setup ? userEvent.setup() : userEvent;
 
       // render component
       render(<CurrencyForm action={action} />);
@@ -30,12 +31,12 @@ describe('Component CurrencyForm', () => {
       const toField = screen.getByTestId('to-select');
 
       // set test values to fields
-      await userEvent.type(amountField, testObj.amount);
-      await userEvent.selectOptions(fromField, testObj.from);
-      await userEvent.selectOptions(toField, testObj.to);
+      await user.type(amountField, testObj.amount);
+      await user.selectOptions(fromField, testObj.from);
+      await user.selectOptions(toField, testObj.to);
 
       // simulate user click on "convert" button
-      await userEvent.click(submitButton);
+      await user.click(submitButton);
 
       // check if action callback was called once and with proper argument
       expect(action).toHaveBeenCalledTimes(1);

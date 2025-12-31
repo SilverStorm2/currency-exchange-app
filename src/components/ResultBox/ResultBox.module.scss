@@ -5,3 +5,15 @@
   margin: $base-size * 3 $base-size;
   text-align: center;
 }
+
+.update {
+  color: $color-dark;
+  font-size: $base-size * 1.5;
+  margin-top: $base-size;
+}
+
+.status {
+  color: $color-dark;
+  font-size: $base-size * 1.5;
+  margin-top: $base-size * 0.5;
+}
